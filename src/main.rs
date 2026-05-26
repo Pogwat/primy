@@ -16,9 +16,11 @@ fn main() {
 
     struct Seive {
         seive:Vec<Option<usize>>,
-        current_prime_idx:usize,
+        current_checked_prime_idx:usize,
         current_idx:usize,
-        number_of_nones:usize
+        start:usize, /* from 0 */ 
+        spacing:usize,
+        range:usize
     }
 
     impl fmt::Debug for Seive {
@@ -26,8 +28,8 @@ fn main() {
         f.debug_list()
             .entries(self.seive.iter().flatten())
             .finish()?;
-        write!(f, ", current_prime_idx: {}, current_idx: {}, number_of_nones: {} }}", 
-            self.current_prime_idx, self.current_idx, self.number_of_nones
+        write!(f, ", current_checked_prime_idx: {}, current_idx: {} }}", 
+        self.current_checked_prime_idx, self.current_idx
         )
     }}
 
@@ -55,21 +57,20 @@ fn main() {
         fn new(range:usize) -> Self {
             Self {
                 seive: (3..=range).step_by(2).map(|n| Some(n as usize)).collect(),
-                current_prime_idx: 0,
+                current_checked_prime_idx: 0,
                 current_idx:0,
-                number_of_nones:0
+                start:3,
+                spacing:2,
+                range:range
             }
         }
 
-        fn remove_all_of_multiple(&mut self,multiple:usize, start_idx:usize) {
-            let mut pstart_idx=start_idx;
-            if self[start_idx].unwrap_or(start_idx * 2 + 3)%multiple!=0 {
-                pstart_idx = self.find_first_multiple(multiple,start_idx)
+        fn fast_calc_at_index(&self, idx:usize) -> usize {self.spacing*idx+self.start}
+
+        fn checked_remove_multiple(&mut self, multiple: usize, start_idx: usize) {       
+            if start_idx < self.len() { //Dosent go out of bounds even if start_idx+multiple>self.len()
+                (start_idx+multiple..self.len()).step_by(multiple).for_each(|idx| self[idx] = None);
             }
-            (pstart_idx..self.len()).step_by(multiple).for_each(|idx| {
-                self[idx] = None;
-                self.number_of_nones+=1;
-            });
         }
 
         delegate! {
@@ -78,36 +79,20 @@ fn main() {
             }
         }
 
-        fn find_first_multiple(&self, multiple: usize, start_idx: usize) -> usize { 
-            // 1. Unwrap the Option safely or use a default if it was already cleared
-            // 2. Map the vector index back to its physical odd number value: (index * 2) + 3
-            let current_val = self[start_idx].unwrap_or(start_idx * 2 + 3);
-            let diff_to_last_multiple_idx = (current_val % multiple) / 2;
-            start_idx + multiple - diff_to_last_multiple_idx
+        fn remove_all_multiple_of_current_prime(&mut self) {
+            self.checked_remove_multiple(self[self.current_checked_prime_idx].unwrap(),self.current_checked_prime_idx)
         }
 
     }
 
-
     // 1. Correct the upper bound calculation for the loop
-    let limit = ((range as f64).sqrt() as usize) / 2;
-
-    while seive.current_idx < limit {
-        'none_check: { if let Some(prime_value) = seive[seive.current_idx] {
-            seive.current_prime_idx = seive.current_idx;
-            
-            // 2. Map the prime value to its perfect starting index: (prime^2 - 3) / 2
-            let start_idx = (prime_value * prime_value - 3) / 2;
-            if start_idx >= limit { 
-                seive[start_idx]=None; 
-                break 'none_check; }
-            
-            // 3. Pass the actual prime value, and the calculated index
-            seive.remove_all_of_multiple(prime_value, start_idx);
+    let limit = ((range as f64).sqrt() as usize / seive.spacing );
+    for number_to_check in (0..limit) {
+        if let Some(prime) = seive[number_to_check] {
+            seive.current_checked_prime_idx=number_to_check;
+            seive.remove_all_multiple_of_current_prime();
         }
-        
-    } seive.current_idx += 1;}
-
+    }
     println!("{:?}", seive)
 }
 
