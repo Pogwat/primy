@@ -93,20 +93,21 @@ impl<I: Iterator> ArrayCollectExt for I {}
 
     impl<const SIZE: usize> Seive<SIZE> {
         fn new(range:usize) -> Self {
-            const SEG_START:usize=3;
+            const START_RANGE:usize=3;
             const STEP:usize=2;
-            let seg_end_num:usize= SIZE*STEP+SEG_START;
+            let seg_end_num:usize= SIZE*STEP+START_RANGE;
            
             Self {
-                seg_seive: (SEG_START..seg_end_num).step_by(STEP).map(|num| Some(num as usize)).collect_array().unwrap(),
+                seg_seive: (START_RANGE..seg_end_num).step_by(STEP).map(|num| Some(num as usize)).collect_array().unwrap(),
                 primes: Vec::with_capacity(Self::overestimate_num_of_primes(range)),
                 current_idx:0,
-                segment_start:SEG_START,
+                segment_start:START_RANGE,
                 step:STEP,
                 range,
             }
         }
         
+        const START_RANGE:usize=3;
         const SIZE:usize = SIZE;
 
         fn overestimate_num_of_primes(range:usize) -> usize {
@@ -125,14 +126,54 @@ impl<I: Iterator> ArrayCollectExt for I {}
             &self.seg_seive
         }
 
-        // fn find_upper_multiple(&self) -> usize{
-        //     //2n+segment_start = current element
-        //     //(current element - segement start)/2 = n
-        //     // (n+a)*2+1
-        // }
+        fn find_first_multiple(&self, multiple:usize, start:Option<usize>) -> Option<usize>{
+            let multiple_fac_closest_to_start = self.segment_start.div_ceil(multiple);
+            self.global_value_to_local_idx(multiple_fac_closest_to_start*multiple+start.unwrap_or(0))
+        }
 
-        fn remove_multiples(&mut self, multiple: usize) -> &[Option<usize>;SIZE] {       
-            self.seg_seive.iter_mut().step_by(multiple).for_each(|num| *num = None);
+        fn find_upper_multiple(&self,multiple:usize, start_idx:usize) -> Option<usize> {
+            let start_val = self.guess_dex(start_idx);
+            let next_multiple_global_val = if start_val % multiple == 0 {
+                start_val + multiple
+            } else {
+                start_val.next_multiple_of(multiple)
+            };
+            self.global_value_to_local_idx(next_multiple_global_val)
+        }
+
+        fn loop_num(&self) -> usize {
+            (self.segment_start-Self::START_RANGE)/self.step/SIZE
+        }
+
+        fn global_idx(&self, value:usize) -> usize {
+            (value-Self::START_RANGE)/self.step
+        }
+
+        fn global_value_to_local_idx(&self,value:usize) -> Option<usize> {
+            if value>= self.segment_start && value <=self.seg_end() {
+            Some(self.unchecked_value_to_local_idx(value))
+            } else {None}
+        }
+
+        fn unchecked_value_to_local_idx(&self,value:usize) -> usize {
+            (value-self.segment_start)/self.step
+        }
+
+        // fn first_multiple_in_seive(&self, multiple:usize) -> Option<usize> {
+        //     if multiple<= seg.end() {
+        //         if let Some(valid_idx) =global_value_to_local_idx(multiple) {
+        //             return Some(valid_idx)
+        //         } else {
+        //             let invalid_idx = unchecked_value_to_local_idx(multiple);
+
+        //         }
+                
+                 
+        //     }
+        // }
+ 
+        fn remove_multiples(&mut self, multiple: usize, start:usize) -> &[Option<usize>;SIZE] {       
+            self.seg_seive.iter_mut().skip(start).step_by(multiple).for_each(|num| *num = None);
             &self.seg_seive
         }
 
@@ -143,6 +184,39 @@ impl<I: Iterator> ArrayCollectExt for I {}
             self.seg_seive = new_seg;
             &self.seg_seive
         }
+
+        // fn sieve_segment(&mut self) {
+        //     let segment_end = self.segment_start + SIZE;
+        //     for &prime in self.primes {
+        //         // 1. Dynamically find the first multiple >= segment_start
+        //         let mut multiple = ((self.segment_start + prime - 1) / prime) * prime;
+
+        //         // 2. Protect the prime itself from being crossed off
+        //         if multiple == prime {
+        //             multiple += prime;
+        //         }
+
+        //         // 3. Cross off all multiples within this segment
+        //         while multiple < segment_end {
+        //             let local_idx = (multiple - segment_start);
+        //             sieve[local_idx] = None;
+        //             multiple += prime; // Step to the next multiple
+        //         }
+
+        //         //step*n + FIRST_START_RANGE_NUM + segment_start = num
+        //         //(num - segment_start - FIRST_START_RANGE_NUM)/step = N
+        //         let global_idx =  self.global_idx(num);
+
+
+        //     }
+        // }
+        
+        fn local_multiple_iter(&self, multiple:usize, start_idx:Option<usize>) Option<impl Iterator<Item = usize> > {
+            let start_idx = start_idx.unwrap_or(0);
+            let first_multiple_val = self.seg_seive[start_idx].next_multiple_of(multiple);
+            
+        }
+
 
         fn append_to_primes_somes(&mut self) -> &[usize] {
             let mut seg_somes = self.seg_seive.into_iter().flatten().collect();
