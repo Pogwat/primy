@@ -15,7 +15,16 @@ fn main() {
 
     // let leftover = 1..3;
     let mut seive: Seive<4096> = Seive::new(range);
- 
+
+    let test_val:usize =36;
+    let multiple = 2;
+    let next_multiple = match (test_val.next_multiple_of(multiple)) {
+        val if val == test_val => {test_val+multiple}
+        _ => {test_val.next_multiple_of(multiple)}
+    }; 
+    println!("{}",next_multiple);
+    println!("{}, {}",seive.guess_dex(0), seive.seg_seive[0].unwrap());
+    println!("{}",seive.seg_seive.len());
 }
 
 //12.5Gb, 2 billion, 14 minutes 40 seconds
@@ -47,7 +56,6 @@ impl<I: Iterator> ArrayCollectExt for I {}
             seg_seive: [Option<usize>;SIZE],
             primes: Vec<usize>,
             current_idx:usize,
-            seg_start:usize,
             step:usize,
             range:usize,
             num_of_loops:usize
@@ -93,7 +101,6 @@ impl<I: Iterator> ArrayCollectExt for I {}
                 seg_seive: (START_RANGE..seg_end_num).step_by(STEP).map(|num| Some(num as usize)).collect_array().unwrap(),
                 primes: Vec::with_capacity(Self::overestimate_num_of_primes(range)),
                 current_idx:0,
-                seg_start:START_RANGE,
                 step:STEP,
                 range,
                 num_of_loops:0
@@ -108,29 +115,43 @@ impl<I: Iterator> ArrayCollectExt for I {}
             (x/(x.ln()-1.5)).ceil() as usize
         }
 
-        fn guess_dex(&self,index:usize)-> usize {self.seg_start+index*self.step}
-
-        fn global_idx_to_local_idx(&self, global_idx:usize) -> usize{
-            //n's are segmented into SIZE chunks
-            global_idx-(SIZE*self.num_of_loops)
+        fn guess_dex(&self,index:usize)-> usize {(self.num_of_loops*SIZE+index)*self.step+Self::FIRST_START_NUM}
+ 
+        fn seg_start(&self) -> usize {self.guess_dex(0)}
+        fn seg_end(&self) -> usize {self.guess_dex(self.seg_seive.len()-1)}
+        fn is_value_within_seg(&self, value:usize) -> bool{ value <= self.seg_end() && value >= self.seg_start() }
+        
+        fn seg_start_globdex(&self) -> usize {self.num_of_loops*SIZE}
+        fn seg_end_globdex(&self) -> usize {self.seg_start_globdex()+SIZE-1}
+        fn is_global_idx_within_seg(&self, global_idx:usize) -> bool {
+            global_idx>= self.seg_start_globdex() && global_idx<= self.seg_end_globdex()
         }
 
-        fn global_value_to_global_idx(&self, global_value:usize) -> usize {
-            // n*step + fstart = global_value
-            (global_value-Self::FIRST_START_NUM)/self.step
-        }
-
-        fn find_next_multiple(&self, multiple:usize, start:Option<usize>) -> Option<usize>{
-            let local_start = start.unwrap_or(0);
-            let next_multiple = 
-            if local_start % multiple == 0 {
-                local_start+multiple
-            } else {local_start.next_multiple_of(multiple)};
-
-            if next_multiple<=self.guess_dex(self.seg_seive.len()-1)
-               && next_multiple>=self.seg_start {
-                return Some(multiple)
+        fn global_idx_to_local_idx(&self, global_idx:usize) -> Option<usize>{
+            return if self.is_global_idx_within_seg(global_idx) {
+                Some(global_idx-self.seg_start_globdex())
             } else {None}
+        }
+
+        fn local_value_to_local_idx(&self,local_value:usize) -> usize{ (local_value-self.seg_start())/self.step }
+        fn local_idx_to_global_idx(&self, local_idx:usize) -> usize {self.seg_start_globdex()+local_idx}
+        
+        fn global_value_to_global_idx(&self, global_value:usize) -> usize {(global_value-Self::FIRST_START_NUM)/self.step}
+        fn global_value_to_local_idx(&self, global_value:usize) -> Option<usize> {
+            return if self.is_value_within_seg(global_value) {
+                Some(self.local_value_to_local_idx(global_value))
+            } else {None}
+        }
+
+        fn find_next_multiple_local_idx(&self, multiple:usize, start:Option<usize>) -> Option<usize>{
+            let local_start_idx = start.unwrap_or(0);
+            let start_value = self.guess_dex(local_start_idx);
+            let next_multiple = match (start_value.next_multiple_of(multiple)) {
+                match_ if match_ == start_value => {start_value+multiple}
+                _ => {start_value.next_multiple_of(multiple)}
+            }; 
+            self.global_value_to_local_idx(next_multiple)
+            
         }
 
         // fn multiples_mut_iter(&mut self,start:Option<usize> ) -> impl Iterator<Item = &mut usize> {
@@ -141,7 +162,6 @@ impl<I: Iterator> ArrayCollectExt for I {}
             let new_start_num = self.guess_dex(self.seg_seive.len()-1)+self.step;
             let old_seive_primes_range = self.append_to_primes_somes();
             self.seg_seive = (new_start_num..).step_by(self.step).map(|num| Some(num as usize)).collect_array().unwrap();
-            self.seg_start = new_start_num;
             self.num_of_loops+=1;
             self.current_idx=0;
             &self.primes[old_seive_primes_range]
