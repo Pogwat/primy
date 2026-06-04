@@ -12,14 +12,14 @@ pub struct FullSeive<const SEG_SIZE: usize> {
                 segmented_seive: SegmentedSeive::<SEG_SIZE>::new(range),
                 primes: Primes::new(range)
             };
-            result.primes.push(2);
+            result.primes.push(3);
             result
 
         }
 
         pub fn remove_segs_primes(&mut self){
             let primes_to_check_iter = self.primes.iter_of_primes_to_check(self.segmented_seive.seg_end());
-            self.segmented_seive.remove_all_multiples_in_iter(primes_to_check_iter);    
+            self.segmented_seive.remove_all_local_multiples_using_iter(primes_to_check_iter);
         }
 
         pub fn recusrisve_remove_prime_multiples(&mut self) {

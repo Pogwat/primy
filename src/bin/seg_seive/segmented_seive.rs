@@ -14,6 +14,7 @@ impl <const SEG_SIZE:  usize> SegmentedSeive<SEG_SIZE> {
     pub const FIRST_START_NUM:usize=3;
     pub const SEG_SIZE:usize = SEG_SIZE;
     pub const STEP:usize = 2;
+    pub const GLOB_IDX_OFFSET_FROM_NORMAL:usize = (Self::FIRST_START_NUM-1)/Self::STEP;
 
     pub fn new(range:usize) -> Self {
         let seg_end_num:usize = Self::FIRST_START_NUM+Self::SEG_SIZE*Self::STEP;
@@ -47,44 +48,47 @@ impl <const SEG_SIZE:  usize> SegmentedSeive<SEG_SIZE> {
     pub fn local_value_to_local_idx(&self,local_value:usize) -> usize{ (local_value-self.seg_start())/Self::STEP }
     pub fn local_idx_to_global_idx(&self, local_idx:usize) -> usize {self.seg_start_globdex()+local_idx}
 
-    pub fn global_value_to_global_idx(&self, global_value:usize) -> usize {(global_value-Self::FIRST_START_NUM)/Self::STEP}
+    pub fn global_value_to_global_idx(global_value:usize) -> usize {(global_value-Self::FIRST_START_NUM)/Self::STEP}
     pub fn global_value_to_local_idx(&self, global_value:usize) -> Option<usize> {
         return if self.is_value_within_seg(global_value) {
             Some(self.local_value_to_local_idx(global_value))
         } else {None}
     }
 
-    pub fn upper_multiple_idx_from_local_idx(&self, multiple:usize, start_local_idx:Option<usize>) -> Option<usize> {
-        let start_value = self.guess_dex(start_local_idx.unwrap_or(0));
-        let next_multiple_value = start_value.next_multiple_of(multiple);
-        let next_upper_multiple_value = if next_multiple_value == start_value {
-            start_value+multiple
-        } else {next_multiple_value};
-        self.global_value_to_local_idx(next_upper_multiple_value)
-    }
 
-    pub fn upper_multiples_mut_iter(&mut self,multiple:usize,start:Option<usize> ) -> Option<impl Iterator<Item = &mut Option<usize>>> {
-        return if let Some(start_idx) = self.upper_multiple_idx_from_local_idx(multiple,start) {
-            let segment_starting_at_upper_multiple = &mut self.segmented_seive[(start_idx..)];
-            Some(segment_starting_at_upper_multiple.iter_mut().step_by(multiple))
-        } else {None}
+    pub fn next_global_multiples_idx(global_idx:usize, multiple:usize) -> usize {
+        let first_multiple_idx=Self::global_value_to_global_idx(multiple);
+        if global_idx <= first_multiple_idx {
+            first_multiple_idx
+        } else {
+            let idx_difference = global_idx - first_multiple_idx;
+            let offset_to_lower_multiple = idx_difference % multiple;
+            global_idx - offset_to_lower_multiple + multiple
         }
-
-
-    pub fn mut_multiple_iter<'a>(&'a mut self, multiple: usize, start: usize) -> Option<Peekable<impl Iterator<Item = &'a mut Option<usize>> + 'a>> {
-        let value = self.guess_dex(start);
-        if let Some(start_multiple_idx) = self.global_value_to_local_idx(value.next_multiple_of(multiple)) {
-            let segment = &mut self.segmented_seive[start_multiple_idx..];
-            Some(segment.iter_mut().step_by(multiple).peekable())
-        } else {None}
     }
 
-    pub fn remove_all_multiples_in_iter<'a>(&mut self, iterator:impl Iterator<Item = &'a usize>) {
-        for multiple in iterator {
-            if let Some(seg_multiples_iter) = self.mut_multiple_iter(*multiple, self.current_idx) {
-                seg_multiples_iter.for_each(|multiple_in_seive| *multiple_in_seive=None)
-            };
-        }; 
+    pub fn next_local_multiples_idx(&self,local_idx:usize, multiple:usize) -> Option<usize> {
+        self.global_idx_to_local_idx(Self::next_global_multiples_idx(self.local_idx_to_global_idx(local_idx), multiple))
+    }
+
+    pub fn next_local_multiples_iter(&self, local_start_idx:usize,multiple:usize) -> Option<Peekable<impl Iterator<Item = & Option<usize>>>> {
+        return if let Some(first_local_multiple_idx) = self.next_local_multiples_idx(local_start_idx,multiple) {
+            Some(self.segmented_seive[first_local_multiple_idx..].iter().step_by(multiple).peekable())
+        } else {None}
+    } 
+
+    pub fn mut_next_local_multiples_iter(&mut self , local_start_idx:usize,multiple:usize) -> Option<Peekable<impl Iterator<Item = &mut Option<usize>>>> {
+        return if let Some(first_local_multiple_idx) = self.next_local_multiples_idx(local_start_idx,multiple) {
+            Some(self.segmented_seive[first_local_multiple_idx..].iter_mut().step_by(multiple).peekable())
+        } else {None}
+    } 
+
+    pub fn remove_all_local_multiples_using_iter<'a>(&mut self, multiples_iter:impl Iterator<Item = &'a usize>) {
+        multiples_iter.for_each(|multiple| {
+            if let Some(local_multiples_iter) = self.mut_next_local_multiples_iter(0,*multiple)  {
+                local_multiples_iter.for_each(|local_multiple| *local_multiple = None)
+            }    
+        })
     }
 
     pub fn bump_seive(&mut self) {
@@ -103,5 +107,5 @@ impl <const SEG_SIZE:  usize> SegmentedSeive<SEG_SIZE> {
         self.segmented_seive.iter().skip(start).position(|num| num.is_some()).map(|relative_idx| start + relative_idx)
     }
 
-    pub fn ranges_global_idx(&self) -> usize {self.global_value_to_global_idx(self.range - self.range%2)}
+    pub fn ranges_global_idx(&self) -> usize {Self::global_value_to_global_idx(self.range - self.range%2)}
 }

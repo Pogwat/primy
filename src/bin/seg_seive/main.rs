@@ -17,6 +17,8 @@ fn main() {
     let mut range:usize = 2000000000; // <----- Must be greater than 1 for this formula to work
     if args.len()>1 { range = args[1].parse().unwrap_or(1000000);}
     let mut seive:FullSeive<4096> = FullSeive::new(5000);
-    seive.filter_bump_seive();
-    println!("{:?}",seive.primes.primes)
+    // println!("{:?}",seive.segmented_seive.next_local_multiples_iter(0,7).unwrap().into_iter().collect::<Vec<_>>());
+    println!("{:?}",seive.segmented_seive.next_local_multiples_idx(2,7).unwrap());
+    //seive.filter_bump_seive();
+    //println!("{:?}",seive.primes.primes);
 }
