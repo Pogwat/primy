@@ -16,6 +16,12 @@ pub trait ArrayCollectExt: Iterator + Sized {
 
         if error { None } else { Some(array) }
     }
+
+        fn collect_array_with_defaults<const SIZE: usize>(&mut self) -> [Self::Item; SIZE] 
+        where <Self as Iterator>::Item: Default    
+        {
+        std::array::from_fn(|_| self.next().unwrap_or_default() )
+    }
 }
 
 // 2. Blanket implement it for ALL iterators automatically

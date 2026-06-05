@@ -18,14 +18,14 @@ impl<const SEG_SIZE: usize> FullSeive<SEG_SIZE> {
     }
 
     pub fn filter_local_for_primes(&mut self) {
-        self.segmented_seive.remove_all_local_multiples_using_iter(self.primes.primes.iter());
+        self.segmented_seive.remove_multiples_in_iter(self.primes.primes.iter());
         
-        while let Some(prime_idx) = self.segmented_seive.find_some(self.segmented_seive.current_idx) {
-            self.segmented_seive.current_idx = prime_idx;
-            if let Some(val) = std::mem::take(&mut self.segmented_seive.segmented_seive[self.segmented_seive.current_idx]) {
-                self.primes.push(val)
+        while let Some(prime_idx) = self.segmented_seive.find_some(self.segmented_seive.last_primes_idx.unwrap_or(0)) {
+            self.segmented_seive.last_primes_idx = Some(prime_idx);
+            if let Some(val) = std::mem::take(&mut self.segmented_seive.segmented_seive[self.segmented_seive.last_primes_idx.unwrap()]) {
+                self.primes.push(val.get())
             }
-            self.segmented_seive.remove_all_local_multiples_using_iter(self.primes.iter_of_primes_to_check(self.segmented_seive.seg_end()))
+            self.segmented_seive.remove_multiples_in_iter(self.primes.iter_of_primes_to_check(self.segmented_seive.seg_end()))
         }
     }
 

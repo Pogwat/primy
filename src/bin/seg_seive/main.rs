@@ -1,13 +1,8 @@
 use std::env;
-use std::ops::Range;
-
 mod primes;
 mod array_collect;
 mod segmented_seive;
 mod full_seive;
-
-use crate::segmented_seive::SegmentedSeive;
-use crate::primes::Primes;
 use crate::full_seive::FullSeive;
 
 fn main() {
