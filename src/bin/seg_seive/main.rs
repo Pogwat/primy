@@ -12,12 +12,10 @@ use crate::full_seive::FullSeive;
 
 fn main() {
     let args:Vec<String> = env::args().collect();
-    
-    // x/(log(x))*(1+3/(2log(x))) overestimate of primes whithin a range GREATER THAN 1 by Rosser and Schoenfeld
-    let mut range:usize = 2000000000; // <----- Must be greater than 1 for this formula to work
+    let mut range:usize = 2000000000; 
     if args.len()>1 { range = args[1].parse().unwrap_or(1000000);}
     let mut seive:FullSeive<4096> = FullSeive::new(range);
     seive.filter_range();
     println!("{:?}",seive.primes.primes);
-    
+    //println!("{:?}",seive.segmented_seive.segmented_seive);
 }

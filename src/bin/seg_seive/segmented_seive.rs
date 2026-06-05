@@ -63,6 +63,8 @@ impl <const SEG_SIZE:  usize> SegmentedSeive<SEG_SIZE> {
         }
     }
 
+    //8195!!!! is not prime pls fix me!
+
     pub fn next_local_multiples_idx(&self,local_idx:usize, multiple:usize) -> Option<usize> {
         self.global_idx_to_local_idx(Self::next_global_multiples_idx(self.local_idx_to_global_idx(local_idx), multiple))
     }
@@ -87,14 +89,21 @@ impl <const SEG_SIZE:  usize> SegmentedSeive<SEG_SIZE> {
         })
     }
 
-    pub fn bump_seive(&mut self) -> Option<usize>{
-        let new_last = self.seg_end()+SEG_SIZE*Self::STEP;
-        return if new_last<=self.range  {
-            self.segmented_seive= Self::new_seive(self.seg_end()+Self::STEP);
-            self.current_idx=0;
+    pub fn bump_seive(&mut self) -> bool{
+        let new_start_val = self.seg_end()+Self::STEP;
+        let new_end_val = new_start_val+SEG_SIZE*Self::STEP;
+ 
+        if let Some(range_idx) =  self.global_value_to_local_idx(self.range) {
+            self.segmented_seive = Self::new_seive(new_start_val);
+            self.segmented_seive[range_idx..].iter_mut().for_each(|num_past_range|*num_past_range=None);
+        } 
+        else if new_end_val<self.range {
+            self.segmented_seive = Self::new_seive(new_start_val);
+        } 
+        else { return false }
             self.num_of_loops+=1;
-            Some(self.seg_start())
-        } else {None}
+            self.current_idx=0;
+            return true
     }
 
     pub fn new_seive(start:usize) -> [Option<usize>;SEG_SIZE] {
