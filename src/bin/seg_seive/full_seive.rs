@@ -25,7 +25,7 @@ pub struct FullSeive<const SEG_SIZE: usize> {
                 if let Some(val) = std::mem::take(&mut self.segmented_seive.segmented_seive[self.segmented_seive.current_idx]) {
                     self.primes.push(val)
                 }
-                self.segmented_seive.remove_all_local_multiples_using_iter(self.primes.primes.iter())
+                self.segmented_seive.remove_all_local_multiples_using_iter(self.primes.iter_of_primes_to_check(self.segmented_seive.seg_end()))
             }
         }
 

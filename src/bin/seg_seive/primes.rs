@@ -15,11 +15,11 @@ impl Primes {
         }
     }
 
-    pub fn max_factor_to_check(prime:usize) -> usize {prime.isqrt()}
+    pub fn max_factor_to_check(range:usize) -> usize {range.isqrt()}
     
     pub fn iter_of_primes_to_check(&self, range_max: usize) -> impl Iterator<Item = &usize> + '_ {
-        let limit = Self::overestimate_num_of_primes(range_max);
-        self.primes.iter().take_while(move |&prime| *prime < limit)     
+        let max_factor = Self::max_factor_to_check(range_max);
+        self.primes.iter().take_while(move |&prime| *prime <= max_factor)     
     }
 
     delegate!{

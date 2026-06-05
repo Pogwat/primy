@@ -52,7 +52,6 @@ impl <const SEG_SIZE:  usize> SegmentedSeive<SEG_SIZE> {
         } else {None}
     }
 
-
     pub fn next_global_multiples_idx(global_idx:usize, multiple:usize) -> usize {
         let first_multiple_idx=Self::global_value_to_global_idx(multiple);
         if global_idx <= first_multiple_idx {
