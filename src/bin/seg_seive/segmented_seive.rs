@@ -25,9 +25,6 @@ impl <const SEG_SIZE:  usize> SegmentedSeive<SEG_SIZE> {
             num_of_loops:0
         }
     }
-
-    //STEP BY MULTIPLES ARE BROKEN!!!!!!, NEED TO FIX
-
     pub fn guess_dex(&self,index:usize)-> usize {(self.num_of_loops*SEG_SIZE+index)*Self::STEP+Self::FIRST_START_NUM}
     pub fn seg_start(&self) -> usize {self.guess_dex(0)}
     pub fn seg_end(&self) -> usize {self.guess_dex(self.segmented_seive.len()-1)}
@@ -91,12 +88,14 @@ impl <const SEG_SIZE:  usize> SegmentedSeive<SEG_SIZE> {
         })
     }
 
-    pub fn bump_seive(&mut self) {
+    pub fn bump_seive(&mut self) -> Option<usize>{
         let new_last = self.seg_end()+SEG_SIZE*Self::STEP;
-        if new_last<=self.range  {
-            self.segmented_seive= Self::new_seive(self.seg_end()+Self::STEP)
-
-        }
+        return if new_last<=self.range  {
+            self.segmented_seive= Self::new_seive(self.seg_end()+Self::STEP);
+            self.current_idx=0;
+            self.num_of_loops+=1;
+            Some(self.seg_start())
+        } else {None}
     }
 
     pub fn new_seive(start:usize) -> [Option<usize>;SEG_SIZE] {
@@ -106,6 +105,4 @@ impl <const SEG_SIZE:  usize> SegmentedSeive<SEG_SIZE> {
     pub fn find_some(&mut self, start:usize) -> Option<usize> {
         self.segmented_seive.iter().skip(start).position(|num| num.is_some()).map(|relative_idx| start + relative_idx)
     }
-
-    pub fn ranges_global_idx(&self) -> usize {Self::global_value_to_global_idx(self.range - self.range%2)}
 }
