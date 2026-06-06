@@ -17,12 +17,14 @@ impl<const SEG_SIZE: usize> FullSeive<SEG_SIZE> {
     }
 
     pub fn filter_local_for_primes(&mut self) {
-        self.segmented_seive.remove_multiples_in_iter(self.primes.primes.iter());
+        self.segmented_seive.remove_multiples_in_iter(self.primes.iter_of_primes_to_check(self.segmented_seive.range));
         while let Some(prime_idx) = self.segmented_seive.find_some(self.segmented_seive.last_primes_idx.unwrap_or(0)) {
             self.segmented_seive.last_primes_idx = Some(prime_idx);
-            if let Some(val) = std::mem::take(&mut self.segmented_seive.segmented_seive[self.segmented_seive.last_primes_idx.unwrap()]) {
-                self.primes.push(val.get());
-                self.segmented_seive.remove_multiples(val.get());
+            if let Some(prime) = std::mem::take(&mut self.segmented_seive.segmented_seive[self.segmented_seive.last_primes_idx.unwrap()]) {
+                let unwraped_prime = prime.get();
+                self.primes.push(unwraped_prime);
+                if unwraped_prime<=Primes::max_factor_to_check(self.segmented_seive.range) {
+                self.segmented_seive.remove_multiples(unwraped_prime); } //Most primes are above sqrt range so we should on run this if the the prime is less than sqrt of range
             }
         }
     }
@@ -35,3 +37,5 @@ impl<const SEG_SIZE: usize> FullSeive<SEG_SIZE> {
         }
     }
 }
+
+//1 billion, 389MB,  69.11s user 1.70s system 97% cpu 1:12.60 total
