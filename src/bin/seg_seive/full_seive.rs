@@ -14,7 +14,6 @@ impl<const SEG_SIZE: usize> FullSeive<SEG_SIZE> {
         };
         result.primes.push(3);
         result
-
     }
 
     pub fn filter_local_for_primes(&mut self) {
@@ -31,7 +30,8 @@ impl<const SEG_SIZE: usize> FullSeive<SEG_SIZE> {
 
     pub fn filter_range(&mut self) {
         self.filter_local_for_primes();
-        while self.segmented_seive.bump_seive() {
+        while self.segmented_seive.seg_end()<=self.segmented_seive.range {
+            self.segmented_seive.bump_seive();
             self.filter_local_for_primes();
         }
     }

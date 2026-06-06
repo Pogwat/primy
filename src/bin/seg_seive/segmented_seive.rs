@@ -27,7 +27,7 @@ impl <const SEG_SIZE:  usize> SegmentedSeive<SEG_SIZE> {
     }
     pub fn guess_dex(&self,index:usize)-> usize {self.num_of_loops*Self::NUMS_PER_SEG+Self::FIRST_START_NUM+index*Self::STEP}
     pub fn seg_start(&self) -> usize {self.guess_dex(0)}
-    pub fn seg_end(&self) -> usize {self.guess_dex(Self::NUMS_PER_SEG-1)}
+    pub fn seg_end(&self) -> usize {self.guess_dex(Self::SEG_SIZE-1)}
     pub fn is_value_within_seg(&self, value:usize) -> bool{ value <= self.seg_end() && value >= self.seg_start() }
 
     pub fn seg_start_globdex(&self) -> usize {self.num_of_loops*SEG_SIZE}
@@ -54,15 +54,10 @@ impl <const SEG_SIZE:  usize> SegmentedSeive<SEG_SIZE> {
 
     pub fn next_global_multiples_idx(global_idx:usize, multiple:usize) -> usize {
         let first_multiple_idx=Self::global_value_to_global_idx(multiple);
-        if global_idx <= first_multiple_idx { first_multiple_idx }
-        else {
-            let idx_difference = global_idx - first_multiple_idx;
-            let offset_to_lower_multiple = idx_difference % multiple;
-            global_idx - offset_to_lower_multiple + multiple
-        }
+        let global_idx=global_idx.max(first_multiple_idx);
+        let idx_difference = global_idx - first_multiple_idx;
+        first_multiple_idx +idx_difference.div_ceil(multiple) * multiple
     }
-
-    //8195!!!! is not prime pls fix me!
 
     pub fn next_local_multiples_idx(&self,local_idx:usize, multiple:usize) -> Option<usize> {
         self.global_idx_to_local_idx(Self::next_global_multiples_idx(self.local_idx_to_global_idx(local_idx), multiple))
@@ -90,13 +85,12 @@ impl <const SEG_SIZE:  usize> SegmentedSeive<SEG_SIZE> {
         }
     }
 
-    pub fn bump_seive(&mut self) -> bool{
+    pub fn bump_seive(&mut self){
         let new_start_val = self.seg_end()+Self::STEP;
         let new_end_val = new_start_val+Self::NUMS_PER_SEG;
         self.segmented_seive = Self::new_seive(new_start_val, self.range);
         self.num_of_loops+=1;
         self.last_primes_idx=None;
-        return if new_end_val+Self::NUMS_PER_SEG<self.range {true} else {false}
     }
 
     pub fn new_seive(start:usize, end:usize) -> [Option<NonZeroUsize>;SEG_SIZE] {
