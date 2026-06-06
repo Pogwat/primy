@@ -43,4 +43,5 @@ impl<const SEG_SIZE: usize> FullSeive<SEG_SIZE> {
 /* compiled: 
 input: 1 billion, 389mb ram used, ./seg_seive_non_zero_usize 1000000000  7.91s user 1.62s system 83% cpu 11.454 total
 input: 10 billion 3.4gb ram used, ./seg_seive_non_zero_usize 10000000000  121.81s user 15.09s system 87% cpu 2:36.98 total 
+input: 40 billion, 11.3gb ram used, ./seg_seive_non_zero_usize 40000000000  932.48s user 73.86s system 92% cpu 18:06.41 total
 */
