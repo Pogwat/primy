@@ -11,6 +11,6 @@ fn main() {
     if args.len()>1 { range = args[1].parse().unwrap_or(1000000);}
     let mut seive:FullSeive<4096> = FullSeive::new(range);
     seive.filter_range();
-    println!("{:?}, {}",seive.primes.primes, seive.segmented_seive.seg_end());
+    println!("{:?}",seive.primes.primes);
     //println!("{:?}",seive.segmented_seive.segmented_seive);
 }
