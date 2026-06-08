@@ -1,6 +1,6 @@
 use delegate::delegate;
-struct Primes {
-    primes:Vec<usize>
+pub struct Primes {
+    pub primes:Vec<usize>
 }
 
 impl Primes {
