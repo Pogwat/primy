@@ -40,3 +40,11 @@ impl <const SEG_SIZE:usize> FullSeive<SEG_SIZE> {
         self.filter_primes();
     }
 } 
+
+/*
+Compiled: 1 billion: 390MB ram used, ./seg_seive_bool 1000000000  4.38s user 1.48s system 70% cpu 8.285 total
+Compiled: 10 billion: 3363MB ram used, ./seg_seive_bool 10000000000  48.68s user 16.39s system 76% cpu 1:24.93 total
+
+Uncompiled 1 billion:390MB ram used, cargo run --bin seg_seive_bool -- 1000000000  27.67s user 1.65s system 93% cpu 31.524 total
+
+*/
