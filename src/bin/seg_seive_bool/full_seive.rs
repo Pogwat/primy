@@ -13,11 +13,28 @@ impl <const SEG_SIZE:usize> FullSeive<SEG_SIZE> {
             seive: SegSeive::<SEG_SIZE>::new(range),
             primes: Primes::new(range)
         };
-        result.primes.push(3);
+        result.primes.primes.push(3);
         result
     }
 
+    pub fn filter_primes(&mut self) {
+        self.seive.remove_multiples_in_iter(self.primes.iter_of_primes_to_check(self.seive.range));
+        while let Some(prime_idx) = self.seive.find_set(self.seive.last_prime_idx.unwrap_or(0)) {
+            let prime_val = self.seive.guess_dex(prime_idx);
+            self.primes.primes.push(prime_val);
+            self.seive.seive[prime_idx] = false;
+            if prime_val<=Primes::max_factor_to_check(self.seive.range) {
+                self.seive.remove_multiple(prime_val);
+            }
+            self.seive.last_prime_idx = Some(prime_idx);
+        }
+    }
 
-
-
+    pub fn filter_range(&mut self) {
+        self.filter_primes();
+        while self.seive.seg_end()<=self.seive.range {
+            self.seive.bump_seive();
+            self.filter_primes();
+        }
+    }
 } 
