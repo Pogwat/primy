@@ -31,11 +31,12 @@ impl <const SEG_SIZE:usize> FullSeive<SEG_SIZE> {
     }
 
     pub fn filter_range(&mut self) {
-        self.filter_primes();
-        for _ in 0..self.seive.num_of_seive_bumps() {
-            self.seive.bump_seive();
+        for _ in 0..self.seive.num_of_seive_bumps_floor() {
             self.filter_primes();
+            self.seive.bump_seive(); 
         }
-        
+        let range_local_idx = self.seive.local_ranges_idx().unwrap_or(0);
+        self.seive.seive[range_local_idx..SEG_SIZE].fill(false);
+        self.filter_primes();
     }
 } 

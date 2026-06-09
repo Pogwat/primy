@@ -17,8 +17,13 @@ impl <const SEG_SIZE:usize>SegSeive<SEG_SIZE> {
         }
     }
 
-    pub fn num_of_seive_bumps(&self) -> usize {
-        (self.range-Self::START_NUM).div_ceil(Self::STEP*SEG_SIZE) //Div truncates to 0 
+    pub fn num_of_seive_bumps_floor(&self) -> usize {
+        (self.range-Self::START_NUM)/(Self::STEP*SEG_SIZE) //Div truncates to 0 
+    }
+
+    pub fn local_ranges_idx(&self) -> Option<usize> {
+        let range_globdex=Self::global_value_to_global_idx(self.range - self.range%Self::STEP + 1); //Convert range to nearest odd number
+        self.global_idx_to_local_idx(range_globdex)
     }
 
     pub const START_NUM:usize =3;
