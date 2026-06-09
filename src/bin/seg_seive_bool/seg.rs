@@ -17,6 +17,10 @@ impl <const SEG_SIZE:usize>SegSeive<SEG_SIZE> {
         }
     }
 
+    pub fn num_of_seive_bumps(&self) -> usize {
+        (self.range-Self::START_NUM).div_ceil(Self::STEP*SEG_SIZE) //Div truncates to 0 
+    }
+
     pub const START_NUM:usize =3;
     pub const STEP:usize =2;
 

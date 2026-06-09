@@ -32,9 +32,10 @@ impl <const SEG_SIZE:usize> FullSeive<SEG_SIZE> {
 
     pub fn filter_range(&mut self) {
         self.filter_primes();
-        while self.seive.seg_end()<=self.seive.range {
+        for _ in 0..self.seive.num_of_seive_bumps() {
             self.seive.bump_seive();
             self.filter_primes();
         }
+        
     }
 } 
