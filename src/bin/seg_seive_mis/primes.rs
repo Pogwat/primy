@@ -1,8 +1,10 @@
 use std::num::NonZeroUsize;
+use smallnum::{small_unsigned, SmallUnsigned};
+
 
 //I Is type that holds Indexes in SEG_SIZE, Please ensure sizeof(I).=SEG_SIZE
-pub struct MISPrimes<I,const SEG_SIZE:usize, const STEP:usize, const START_NUM:usize> {
-    pub num_of_loops:Vec<Range<I>>, //Range of segemnts local indexes
+pub struct MISPrimes<I:Sized,const SEG_SIZE:usize, const STEP:usize, const START_NUM:usize> {
+    pub num_of_primes_per_loop:Vec<I>, 
     pub indexes: Vec<I> //All local indexes i.e. 1 3 5 ,7,1 3 5 ,7 ...
 }
 
@@ -15,20 +17,19 @@ impl  <I,const SEG_SIZE:usize, const STEP:usize,const START_NUM:usize>MISPrimes<
     }
 
     pub fn new(range:usize) ->Self {
-        assert!(2.pow(std::mem::size_of::<I>()*8)>=SEG_SIZE);
         Self {
-            num_of_loops:Vec::with_capacity(range/STEP/SEG_SIZE),
+            num_of_primes_per_loop:Vec::with_capacity(range/STEP/SEG_SIZE),
             indexes: Vec::with_capacity(Self::overestimate_num_of_primes(range))
         }
     }
 
-    pub fn mis_index_to_global_index(&self, mis_index:usize) -> usize {
-        mis_index+SEG_SIZE*self.num_of_loops
-    }
+    // pub fn mis_index_to_global_index(&self, mis_index:usize) -> usize {
+    //     mis_index+SEG_SIZE*self.num_of_loops
+    // }
 
-    pub fn get_prime(&self,mis_index:usize) -> usize {
-        self.mis_index_to_global_index(mis_index)*STEP+START_NUM
-    }
+    // pub fn get_prime(&self,mis_index:usize) -> usize {
+    //     self.mis_index_to_global_index(mis_index)*STEP+START_NUM
+    // }
 
     pub fn max_factor_to_check(range:usize) -> usize {range.isqrt()}
     
@@ -37,4 +38,5 @@ impl  <I,const SEG_SIZE:usize, const STEP:usize,const START_NUM:usize>MISPrimes<
     //     self.primes.iter().take_while(move |&prime| *prime <= max_factor)     
     // }
 }
+
 
