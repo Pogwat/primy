@@ -1,5 +1,4 @@
 use std::num::NonZeroUsize;
-use smallnum::{small_unsigned, SmallUnsigned};
 
 
 //I Is type that holds Indexes in SEG_SIZE, Please ensure sizeof(I).=SEG_SIZE
