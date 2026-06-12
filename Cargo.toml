@@ -5,3 +5,4 @@ edition = "2024"
 
 [dependencies]
 delegate = "0.13.5"
+num-traits = "0.2.19"
