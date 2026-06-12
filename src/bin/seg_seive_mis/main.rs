@@ -2,6 +2,7 @@ use std::num::NonZeroUsize;
 mod primes;
 mod seg;
 mod full_seive;
+mod mapping;
 use full_seive::FullSeive;
 use std::env;
 fn main() {

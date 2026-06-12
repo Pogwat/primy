@@ -1,15 +1,21 @@
 use std::num::NonZeroUsize;
-
+use num_traits::{PrimInt, Unsigned};
 
 //I Is type that holds Indexes in SEG_SIZE, Please ensure sizeof(I).=SEG_SIZE
-pub struct MISPrimes<I:Sized,const SEG_SIZE:usize, const STEP:usize, const START_NUM:usize> {
+pub struct MISPrimes<I:Sized,const SEG_SIZE:usize, const STEP:usize, const START_NUM:usize>
+where
+    I: PrimInt + Unsigned, // This restricts I to unsigned integers only!
+{
     pub num_of_primes_per_loop:Vec<I>, 
     pub indexes: Vec<I> //All local indexes i.e. 1 3 5 ,7,1 3 5 ,7 ...
 }
 
 
 
-impl  <I,const SEG_SIZE:usize, const STEP:usize,const START_NUM:usize>MISPrimes<I,SEG_SIZE,STEP,START_NUM> {
+impl  <I,const SEG_SIZE:usize, const STEP:usize,const START_NUM:usize>MISPrimes<I,SEG_SIZE,STEP,START_NUM> 
+where
+    I: PrimInt + Unsigned, // This restricts I to unsigned integers only!
+{
     pub fn overestimate_num_of_primes(range:usize) -> usize {
         let x = range as f64;
         (x/(x.ln()-1.5)).ceil() as usize
@@ -23,6 +29,7 @@ impl  <I,const SEG_SIZE:usize, const STEP:usize,const START_NUM:usize>MISPrimes<
     }
 
     // pub fn mis_index_to_global_index(&self, mis_index:usize) -> usize {
+    //     .position(|&index|  > 100)
     //     mis_index+SEG_SIZE*self.num_of_loops
     // }
 

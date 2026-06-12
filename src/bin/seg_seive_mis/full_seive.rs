@@ -1,12 +1,30 @@
 use crate::seg::SegSeive;
 use crate::primes::MISPrimes;
+use crate::smallest_uint;
+use num_traits::{PrimInt, Unsigned};
 
-pub struct FullSeive<I,const SEG_SIZE:usize> {
+pub struct FullSeive<I,const SEG_SIZE:usize> 
+where
+    I: PrimInt + Unsigned, // This restricts I to unsigned integers only!
+{
     pub seive: SegSeive<SEG_SIZE>,
     pub primes:MISPrimes<I,SEG_SIZE,2,3>
 }
 
-// impl <const SEG_SIZE:usize> FullSeive<SEG_SIZE> {
+#[macro_export]
+macro_rules! new_full_seive {
+    ($seg_size:expr) => {
+        $crate::FullSeive::<$crate::smallest_uint!($seg_size), $seg_size> {
+            seive: $crate::SegSeive::<$seg_size>::new(),
+            primes: $crate::MISPrimes::<$crate::smallest_uint!($seg_size), $seg_size, 2, 3>::new() 
+        }
+    };
+}
+
+impl <I,const SEG_SIZE:usize> FullSeive<I,SEG_SIZE> 
+where
+    I: PrimInt + Unsigned, // This restricts I to unsigned integers only!
+{
     
 //     pub fn new(range:usize) -> Self {
 //         let mut result = Self {
@@ -39,7 +57,7 @@ pub struct FullSeive<I,const SEG_SIZE:usize> {
 //         self.seive.seive[range_local_idx..SEG_SIZE].fill(false);
 //         self.filter_primes();
 //     }
-// } 
+} 
 
 /*
 Compiled: 1 billion: 390MB ram used, ./seg_seive_bool 1000000000  4.38s user 1.48s system 70% cpu 8.285 total
