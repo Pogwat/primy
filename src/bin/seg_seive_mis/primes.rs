@@ -28,10 +28,30 @@ where
         }
     }
 
-    // pub fn mis_index_to_global_index(&self, mis_index:usize) -> usize {
-    //     .position(|&index|  > 100)
-    //     mis_index+SEG_SIZE*self.num_of_loops
-    // }
+    pub fn mis_index_to_global_index(&self, mis_index: usize) -> Option<usize> {
+        let mut sum: I = I::zero(); 
+        let target_sum: I = num_traits::cast(mis_index)?;
+
+        if let Some(primes_loop_num) = self.num_of_primes_per_loop
+            .iter()
+            .scan(&mut sum, |sum_ref, &number_of_primes| {
+                // Use ** on both sides to safely read and write through the double reference
+                **sum_ref = **sum_ref + number_of_primes; 
+                Some(**sum_ref)
+            })
+            .position(|current_sum| current_sum >= target_sum)
+        {
+            Some(primes_loop_num*SEG_SIZE+mis_index)
+        } else {None}
+    }  
+
+    pub fn global_index_to_value(mis_index:usize) -> usize {
+        mis_index*STEP+START_NUM
+    }
+
+    pub fn mut_num_of_primes_this_loop(&mut self, loop_index:usize) -> &mut I {
+        &mut self.num_of_primes_per_loop[loop_index]
+    } 
 
     // pub fn get_prime(&self,mis_index:usize) -> usize {
     //     self.mis_index_to_global_index(mis_index)*STEP+START_NUM
