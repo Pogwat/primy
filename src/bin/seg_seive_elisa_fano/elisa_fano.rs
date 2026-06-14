@@ -11,27 +11,27 @@
 //This is the elisa-fano encoding
 
 //We need a bit array to do this, but rust dosent have u1 and bools take 1 bytes
-use crate::smallest_uint;
-use num_traits::PrimInt;
-use num_traits::Unsigned;
+use bitvec::vec;
+use bitvec::prelude::BitVec;
 
-struct BitVec<const BOX_SIZE_IN_BITS:u8, SmallestUIntThatCanHoldABox> 
-where
-    SmallestUIntThatCanHoldABox: PrimInt + Unsigned + std::ops::AddAssign,
-{
-    bytes: Vec<SmallestUIntThatCanHoldABox>
+struct ElisaFano {
+    num_of_elements_per_box: BitVec,
+    indexes: BitVec
 }
 
-impl <const BOX_SIZE_IN_BITS:u8, SmallestUIntThatCanHoldABox>BitVec<BOX_SIZE_IN_BITS,SmallestUIntThatCanHoldABox> 
-where
-    SmallestUIntThatCanHoldABox: PrimInt + Unsigned + std::ops::AddAssign,
-{
-    pub const TypeBits:u64 = (size_of::<SmallestUIntThatCanHoldABox>()*8) as u64;
+impl ElisaFano{
+    fn bit_box_size(max_num:u64,num_of_elements:u64) -> u32 {
+        (max_num/num_of_elements).ilog2()
+    } 
 
-    //2^n = 2^(n-1) + 2^(n-2)... + 2^(n-n) +1 so 2^n -1 = 2^(n-1) + 2^(n-2)... + 2^(n-n) = 11111.... in binary, this is a bitmask for all numbers below 2^n
-    // (bitmask for all numbers below 2^n) & 2^n == 0. i.e. 1000 & 0111 ==0
-    pub const IS_BOX_SIZE_POWER_OF_2:() = if !((BOX_SIZE_IN_BITS & (BOX_SIZE_IN_BITS - 1)) == 0) {
-        panic!("COMPILE ERROR: BOX_SIZE_IN_BITS must be a power of 2");
-    }; 
+    fn num_of_boxes(&self) -> usize {
+        self.num_of_elements_per_box.count_zeros() //0's seperate boxes
+    }
+
+    // fn nth_box_start(&self, box_num: u64) -> usize
+
+    // fn push(&mut self,num:u64) {
+
+    // }
     
 }
